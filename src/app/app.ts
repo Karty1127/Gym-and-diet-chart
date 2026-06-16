@@ -1,37 +1,33 @@
-import { ChangeDetectionStrategy, Component, OnInit, signal, VERSION } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { MatTabsModule } from '@angular/material/tabs';
-import { GYM_PLAN, Planner, Exercise } from './core/services/data/WorkoutDataService';
+import { GYM_PLAN, Planner, Exercise, Notes } from './core/workout-data';
 import { MatTableModule } from '@angular/material/table';
+import { MatCardModule } from '@angular/material/card';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, MatTabsModule, MatTableModule],
+  imports: [MatTabsModule, MatTableModule, MatCardModule],
   templateUrl: './app.html',
   styleUrl: './app.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 
-export class App implements OnInit {
+export class App {
   protected readonly title = signal('Gym-and-diet-chart');
-  public planner!: Planner;
-  public selectedIntensity: string = 'Basic';
-  public displayedColumns: string[] = ['exercise', 'sets', 'reps', 'rest', 'type'];
+  readonly planner: Planner = GYM_PLAN;
+  readonly notes: Notes = Notes;
+  readonly selectedIntensity = signal('Basic');
+  readonly displayedColumns: string[] = ['exercise', 'sets', 'reps', 'rest', 'type'] as const;
   private expandedExerciseName: string | null = null;
 
   public isExpandedRow = (_: number, row: Exercise) => this.isExpanded(row);
 
-  ngOnInit() {
-    console.log('Angular version:', VERSION.full);
-    this.planner = GYM_PLAN;
+  public setIntensity(type: 'Basic' | 'Intermediate' | 'Advanced') {
+    this.selectedIntensity.set(type);
   }
 
-  public selectIntermediate(type: string) {
-    this.selectedIntensity = type;
-  }
-
-  public getFilteredExercises(exercises: any[]): any[] {
-    return exercises.filter(e => e.intensity === this.selectedIntensity);
+  public getFilteredExercises(exercises: Exercise[]): Exercise[] {
+    return exercises.filter(e => e.intensity === this.selectedIntensity());
   }
 
   public isExpanded(row: Exercise): boolean {
